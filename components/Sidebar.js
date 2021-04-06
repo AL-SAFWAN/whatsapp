@@ -1,5 +1,5 @@
 import { Avatar, Button, IconButton } from "@material-ui/core";
-import { ChatRounded, MoreVert, Search } from "@material-ui/icons";
+import { ChatRounded, Email, MoreVert, Search } from "@material-ui/icons";
 import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -8,30 +8,34 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { useRef, useState } from "react";
 import styled from "styled-components";
+import * as EmailValidator from "email-validator";
+
 function Sidebar() {
   const [open, setOpen] = useState(false);
+  const [err, setErr] = useState(false);
   const channelName = useRef("");
 
   const handleClose = () => {
     setOpen(false);
   };
-  const openChannel = () => {};
+  const openChat = () => {};
 
   const addChat = () => {
     if (channelName.current === "") {
       alert("enter a channel name");
       return;
     }
-    if (channelName.current) {
+    if (EmailValidator.validate(channelName.current)) {
+      setErr(false);
       console.log("add chat", channelName.current);
+    } else {
+      setErr(true);
+      return 
     }
     setOpen(false);
     channelName.current = "";
   };
 
-  const createChat = () => {
-    setOpen(true);
-  };
   return (
     <SidebarContainer>
       {open && (
@@ -47,10 +51,11 @@ function Sidebar() {
                 Please enter an email address for the user you wish to chat with
               </DialogContentText>
               <TextField
+                error={err}
                 autoFocus
                 margin="dense"
                 id="name"
-                label="Email Address"
+                label={err?'Incorrect Format': "Email Address"}
                 type="email"
                 fullWidth
                 onChange={(e) => (channelName.current = e.target.value)}
@@ -82,7 +87,13 @@ function Sidebar() {
         <Search />
         <SearchInput placeholder="Search for Chats" />
       </SearchContainer>
-      <SideBarButton onClick={() =>{setOpen(true)}}>Start A New Chat</SideBarButton>
+      <SideBarButton
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        Start A New Chat
+      </SideBarButton>
       {/* List of chats */}
     </SidebarContainer>
   );
