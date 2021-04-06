@@ -28,11 +28,9 @@ function Sidebar() {
     if (EmailValidator.validate(channelName.current)) {
       setErr(false);
       console.log("add chat", channelName.current);
-    //   Add chat into the DB chat collection
-
     } else {
       setErr(true);
-      return;
+      return 
     }
     setOpen(false);
     channelName.current = "";
@@ -57,7 +55,7 @@ function Sidebar() {
                 autoFocus
                 margin="dense"
                 id="name"
-                label={err ? "Incorrect Format" : "Email Address"}
+                label={err?'Incorrect Format': "Email Address"}
                 type="email"
                 fullWidth
                 onChange={(e) => (channelName.current = e.target.value)}
