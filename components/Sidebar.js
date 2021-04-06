@@ -9,8 +9,18 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import { useRef, useState } from "react";
 import styled from "styled-components";
 import * as EmailValidator from "email-validator";
+import { auth, db } from "../firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { useCollection } from "react-firebase-hooks/firestore";
+import Chat from "./Chat";
 
 function Sidebar() {
+  const [user] = useAuthState(auth);
+  const userCharRef = db
+    .collection("chats")
+    .where("users", "array-contains", user.email);
+  const [chatSnapshot] = useCollection(userCharRef);
+
   const [open, setOpen] = useState(false);
   const [err, setErr] = useState(false);
   const channelName = useRef("");
@@ -21,17 +31,31 @@ function Sidebar() {
   const openChat = () => {};
 
   const addChat = () => {
+    const chatAlreadyExists = (recipientEmail) =>
+      !!chatSnapshot?.docs.find(
+        (chat) =>
+          chat.data().users.find((user) => user === recipientEmail)?.length > 0
+      );
+
     if (channelName.current === "") {
       alert("enter a channel name");
       return;
     }
-    if (EmailValidator.validate(channelName.current)) {
+    if (
+      EmailValidator.validate(channelName.current) &&
+      channelName.current !== user.email &&
+      !chatAlreadyExists(channelName.current)
+      // if the chat already exists and the user doesn't already exists and valid
+    ) {
       setErr(false);
-      console.log("add chat", channelName.current);
+      db.collection("chats").add({
+        users: [user.email, channelName.current],
+      });
     } else {
       setErr(true);
-      return 
+      return;
     }
+
     setOpen(false);
     channelName.current = "";
   };
@@ -55,7 +79,7 @@ function Sidebar() {
                 autoFocus
                 margin="dense"
                 id="name"
-                label={err?'Incorrect Format': "Email Address"}
+                label={err ? "Incorrect Format" : "Email Address"}
                 type="email"
                 fullWidth
                 onChange={(e) => (channelName.current = e.target.value)}
@@ -73,7 +97,7 @@ function Sidebar() {
         </div>
       )}
       <Header>
-        <UserAvatar />
+        <UserAvatar src={user.photoURL} onClick={() => auth.signOut()} />
         <IconContainer>
           <IconButton>
             <ChatRounded />
@@ -95,12 +119,14 @@ function Sidebar() {
         Start A New Chat
       </SideBarButton>
       {/* List of chats */}
+      {chatSnapshot?.docs.map((chat) => (
+        <Chat key={chat.id} id={chat.id} users={chat.data().users} />
+      ))}
     </SidebarContainer>
   );
 }
 
 export default Sidebar;
-
 const SideBarButton = styled(Button)`
   width: 100%;
   &&& {
