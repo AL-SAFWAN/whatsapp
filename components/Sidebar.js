@@ -1,9 +1,72 @@
 import { Avatar, Button, IconButton } from "@material-ui/core";
 import { ChatRounded, MoreVert, Search } from "@material-ui/icons";
+import TextField from "@material-ui/core/TextField";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import { useRef, useState } from "react";
 import styled from "styled-components";
 function Sidebar() {
+  const [open, setOpen] = useState(false);
+  const channelName = useRef("");
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+  const openChannel = () => {};
+
+  const addChat = () => {
+    if (channelName.current === "") {
+      alert("enter a channel name");
+      return;
+    }
+    if (channelName.current) {
+      console.log("add chat", channelName.current);
+    }
+    setOpen(false);
+    channelName.current = "";
+  };
+
+  const createChat = () => {
+    setOpen(true);
+  };
   return (
     <SidebarContainer>
+      {open && (
+        <div>
+          <Dialog
+            open={open}
+            onClose={handleClose}
+            aria-labelledby="form-dialog-title"
+          >
+            <DialogTitle id="form-dialog-title">Start A Chat</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Please enter an email address for the user you wish to chat with
+              </DialogContentText>
+              <TextField
+                autoFocus
+                margin="dense"
+                id="name"
+                label="Email Address"
+                type="email"
+                fullWidth
+                onChange={(e) => (channelName.current = e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleClose} color="primary">
+                Cancel
+              </Button>
+              <Button onClick={addChat} color="primary">
+                add
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </div>
+      )}
       <Header>
         <UserAvatar />
         <IconContainer>
@@ -19,7 +82,8 @@ function Sidebar() {
         <Search />
         <SearchInput placeholder="Search for Chats" />
       </SearchContainer>
-      <SideBarButton>Start A New Chat</SideBarButton>
+      <SideBarButton onClick={() =>{setOpen(true)}}>Start A New Chat</SideBarButton>
+      {/* List of chats */}
     </SidebarContainer>
   );
 }
