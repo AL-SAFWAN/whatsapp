@@ -6,7 +6,7 @@ import { useCollection } from "react-firebase-hooks/firestore";
 import styled from "styled-components";
 import { auth, db } from "../firebase";
 import Message from "../components/Message";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import firebase from "firebase";
 import getRecipientEmail from "../utils/getRecipientEmail";
 import TimeAgo from "timeago-react";
@@ -14,6 +14,7 @@ function ChatScreen({ chat, messages }) {
   const [user] = useAuthState(auth);
   const [input, setInput] = useState("");
   const router = useRouter();
+  const endOfMessageRef = useRef(null);
   const recipientEmail = getRecipientEmail(chat.users, user);
   const [messagesSnapshot] = useCollection(
     db
@@ -49,6 +50,13 @@ function ChatScreen({ chat, messages }) {
     }
   };
 
+  const scrollToBottom = () => {
+    endOfMessageRef.current.scrollIntoView({
+      behaviour: "smooth",
+      block: "start",
+    });
+  };
+
   const sendMessage = (e) => {
     e.preventDefault();
     db.collection("users").doc(user.id).set(
@@ -64,6 +72,7 @@ function ChatScreen({ chat, messages }) {
       photoURL: user.photoURL,
     });
     setInput("");
+    scrollToBottom();
   };
 
   const recipient = recipientSnapshot?.docs?.[0]?.data();
@@ -82,9 +91,13 @@ function ChatScreen({ chat, messages }) {
               Last active :{" "}
               {recipient?.lastSeen?.toDate() ? (
                 <TimeAgo datetime={recipient?.lastSeen?.toDate()} />
-              ) : 'Unavailable'}
+              ) : (
+                "Unavailable"
+              )}
             </p>
-          ) : <p>Loading Last Active...</p>}
+          ) : (
+            <p>Loading Last Active...</p>
+          )}
         </HeaderInformation>
         <HeaderIcons>
           <IconButton>
@@ -97,7 +110,7 @@ function ChatScreen({ chat, messages }) {
       </Header>
       <MessageContainer>
         {showMessages()}
-        <EndOfMessage />
+        <EndOfMessage ref={endOfMessageRef} />
       </MessageContainer>
       <InputContainer>
         <InsertEmoticon />
@@ -166,7 +179,9 @@ const HeaderInformation = styled.div`
 
 const HeaderIcons = styled.div``;
 
-const EndOfMessage = styled.div``;
+const EndOfMessage = styled.div`
+margin-bottom:50px;
+`;
 
 const MessageContainer = styled.div`
   padding: 30px;
